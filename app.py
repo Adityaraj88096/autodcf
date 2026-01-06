@@ -3,6 +3,8 @@ import yfinance as yf
 import streamlit as st
 import numpy as np
 from io import BytesIO
+import time, random 
+from yfinance.exceptions import YFRateLimitError
 
 st.set_page_config(page_title="Auto DCF v1", layout="centered")
 st.title = "Auto Dcf v1"
@@ -17,22 +19,31 @@ with st.sidebar:
     growth = st.number_input("FCF Growth(next phase %)", 0.0, 50.0, 12.0, 0.5)/100
     terminal = st.number_input("Terminal growth rate", 0.0, 10.0, 5.00, 0.25 )/100
     wacc = st.number_input("WACC", 0.0, 50.0,10.0, 0.25)/100
-st.write("Value of Ticker", ticker)
-st.markdown("---")
-export_excel = st.button("📥 Export Excel")
+    st.write("Value of Ticker", ticker)
+    st.markdown("---")
+    export_excel = st.button("📥 Export Excel")
 
 @st.cache_data(show_spinner=False)
 def get_data(tic):
-    try:
-        stk = yf.Ticker(tic)
-        info = stk.info
-        fin = stk.financials
-        bs = stk.balance_sheet
-        cf = stk.cashflow
-        return info, fin, bs, cf
-    except Exception as e:
-        st.exception(e)
-        return None, None, None, None
+    for attempt in range(1, 4):
+        try:
+            stk = yf.Ticker(tic)
+            time.sleep(random.uniform(2, 4))          # bigger initial gap
+            info = stk.info
+            fin  = stk.financials
+            bs   = stk.balance_sheet
+            cf   = stk.cashflow
+            if info and cf is not None and not cf.empty:
+                return info, fin, bs, cf
+        except YFRateLimitError:
+            if attempt == 3:
+                st.error("Yahoo is rate-limiting this IP – try again in a few minutes.")
+                return None, None, None, None
+            time.sleep(10 * attempt)                  # 10 s, 20 s, 30 s
+        except Exception as e:
+            st.exception(e)
+            return None, None, None, None
+
     
 info, fin, bs, cf = get_data(ticker)
 if info is None: 
