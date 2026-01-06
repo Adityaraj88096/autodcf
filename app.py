@@ -29,7 +29,7 @@ def get_data(tic):
         try:
             time.sleep(random.uniform(8, 12))          # bigger initial gap
             stk = yf.Ticker(tic)
-            info = stk.basic_info
+            info = stk.info
             fin  = stk.financials
             bs   = stk.balance_sheet
             cf   = stk.cashflow
