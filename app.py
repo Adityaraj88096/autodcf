@@ -31,6 +31,7 @@ def get_data(tic):
         cf = stk.cashflow
         return info, fin, bs, cf
     except Exception as e:
+        st.exception(e)
         return None, None, None, None
     
 info, fin, bs, cf = get_data(ticker)
