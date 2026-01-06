@@ -27,9 +27,9 @@ with st.sidebar:
 def get_data(tic):
     for attempt in range(1, 4):
         try:
+            time.sleep(random.uniform(8, 12))          # bigger initial gap
             stk = yf.Ticker(tic)
-            time.sleep(random.uniform(2, 4))          # bigger initial gap
-            info = stk.info
+            info = stk.basic_info
             fin  = stk.financials
             bs   = stk.balance_sheet
             cf   = stk.cashflow
